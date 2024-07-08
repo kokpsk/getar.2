@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplane Engines Icon with WASD Movement and Bullets</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden; /* 페이지 넘침 방지 */
+            font-family: Arial, sans-serif;
+        }
+
+        .bi {
+            display: inline-block;
+            vertical-align: middle;
+            fill: currentColor;
+        }
+
+        svg {
+            width: 100px; /* 아이콘 크기 조정 */
+            height: 100px;
+            transition: transform 0.1s ease; /* 이동 애니메이션을 위한 CSS transition */
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .bullet {
+            fill: red;
+            transition: transform 0.5s ease;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG 아이콘을 직접 HTML에 삽입 -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-airplane-engines" viewBox="0 0 16 16">
+        <path d="M8 0c-.787 0-1.292.592-1.572 1.151A4.35 4.35 0 0 0 6 3v3.691l-2 1V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.191l-1.17.585A1.5 1.5 0 0 0 0 10.618V12a.5.5 0 0 0 .582.493l1.631-.272.313.937a.5.5 0 0 0 .948 0l.405-1.214 2.21-.369.375 2.253-1.318 1.318A.5.5 0 0 0 5.5 16h5a.5.5 0 0 0 .354-.854l-1.318-1.318.375-2.253 2.21.369.405 1.214a.5.5 0 0 0 .948 0l.313-.937 1.63.272A.5.5 0 0 0 16 12v-1.382a1.5 1.5 0 0 0-.83-1.342L14 8.691V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v.191l-2-1V3c0-.568-.14-1.271-.428-1.849C9.292.591 8.787 0 8 0M7 3c0-.432.11-.979.322-1.401C7.542 1.159 7.787 1 8 1s.458.158.678.599C8.889 2.02 9 2.569 9 3v4a.5.5 0 0 0 .276.447l5.448 2.724a.5.5 0 0 1 .276.447v.792l-5.418-.903a.5.5 0 0 0-.575.41l-.5 3a.5.5 0 0 0 .14.437l.646.646H6.707l.647-.646a.5.5 0 0 0 .14-.436l-.5-3a.5.5 0 0 0-.576-.411L1 11.41v-.792a.5.5 0 0 1 .276-.447l5.448-2.724A.5.5 0 0 0 7 7z"/>
+    </svg>
+
+    <!-- 스코어 표시 -->
+    <div id="score">Score: 0</div>
+
+    <!-- 설명서 창 -->
+    <div id="instructions">
+        <strong>조작 방법:</strong><br>
+        Use <strong>W, A, S, D</strong> keys to move<br>
+        Press any key to start!
+    </div>
+
+    <script>
+        const svgIcon = document.querySelector('.bi-airplane-engines');
+        let iconPositionX = 0;
+        let iconPositionY = 0;
+        const moveStep = 10; // 이동 거리 설정
+        let score = 0; // 점수 초기화
+
+        function updateIconPosition() {
+            svgIcon.style.transform = `translate(${iconPositionX}px, ${iconPositionY}px)`;
+        }
+
+        // 빨간 탄막 생성 및 움직임
+        function createBullet() {
+            const bullet = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            bullet.setAttribute("x", Math.random() * 100 + 200); // 임의의 x 위치
+            bullet.setAttribute("y", Math.random() * 100 + 200); // 임의의 y 위치
+            bullet.setAttribute("width", 10);
+            bullet.setAttribute("height", 3);
+            bullet.classList.add("bullet");
+            document.querySelector("svg").appendChild(bullet);
+
+            // 주인공 쪽으로 탄막 이동
+            const moveInterval = setInterval(() => {
+                bullet.setAttribute("x", parseFloat(bullet.getAttribute("x")) - 5);
+                if (parseFloat(bullet.getAttribute("x")) < iconPositionX + 50) {
+                    if (parseFloat(bullet.getAttribute("y")) > iconPositionY && parseFloat(bullet.getAttribute("y")) < iconPositionY + 100) {
+                        score++;
+                        document.getElementById('score').textContent = `Score: ${score}`;
+                        clearInterval(moveInterval);
+                        bullet.remove();
+                    }
+                }
+            }, 50);
+        }
+
+        // 키보드 이벤트 처리
+        document.addEventListener('keydown', function(event) {
+            // 게임 시작을 위해 아무 키나 누르면 설명서 숨기고 게임 시작
+            if (document.getElementById('instructions').style.display !== 'none') {
+                document.getElementById('instructions').style.display = 'none';
+            }
+
+            switch(event.key) {
+                case 'w':
+                    iconPositionY -= moveStep;
+                    break;
+                case 'a':
+                    iconPositionX -= moveStep;
+                    break;
+                case 's':
+                    iconPositionY += moveStep;
+                    break;
+                case 'd':
+                    iconPositionX += moveStep;
+                    break;
+                default:
+                    return; // 다른 키는 처리하지 않음
+            }
+
+            // SVG 아이콘의 위치 업데이트
+            updateIconPosition();
+        });
+
+        // 주기적으로 빨간 탄막 생성
+        setInterval(createBullet, 1000);
+
+        // 초기 위치 설정
+        updateIconPosition();
+    </script>
+</body>
+</html>
